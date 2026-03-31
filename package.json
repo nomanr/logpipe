@@ -1,7 +1,7 @@
 {
   "name": "logpeek",
   "version": "0.0.1",
-  "description": "Pipe mobile device logs to AI coding agents",
+  "description": "Peek into mobile device logs from AI coding agents",
   "type": "module",
   "main": "./dist/bin.js",
   "bin": {

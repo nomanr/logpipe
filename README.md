@@ -1,6 +1,6 @@
 # logpeek
 
-Pipe mobile device logs to AI coding agents.
+Peek into mobile device logs from AI coding agents.
 
 logpeek gives coding agents like Claude Code, Cursor, and Gemini CLI direct access to Android and iOS device logs.
 
