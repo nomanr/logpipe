@@ -9,6 +9,10 @@ import { createLogger, setLogger } from './logger.js';
 import { runLogs } from './commands/logs.js';
 import { runDevices } from './commands/devices.js';
 import { runDoctor } from './commands/doctor.js';
+import { listAndroidApps, listIosApps } from './devices/apps.js';
+import { DeviceDiscovery } from './devices/discovery.js';
+import { pickDevice } from './commands/device-picker.js';
+import { select } from '@inquirer/prompts';
 import type { LogLevel, LogSource, Framework } from './types.js';
 
 const require = createRequire(import.meta.url);
@@ -42,10 +46,40 @@ export function createProgram(): Command {
     .description('Collect and display device logs')
     .action(async function (this: Command) {
       const opts = this.optsWithGlobals();
-      if (!opts.app) {
-        throw new Error('--app is required. Pass the bundle ID or package name (e.g., --app com.example.myapp)');
-      }
       const shell = new RealShell();
+
+      if (!opts.app) {
+        const discovery = new DeviceDiscovery(shell);
+        const devices = await discovery.list();
+        const booted = devices.filter((d) => d.state === 'booted');
+        if (booted.length === 0) {
+          throw new Error('No booted devices found. Start an emulator or simulator first.');
+        }
+        const device = await pickDevice(booted);
+        const apps = device.platform === 'android'
+          ? await listAndroidApps(shell, device.id)
+          : await listIosApps(shell, device.id);
+
+        if (apps.length === 0) {
+          throw new Error('No third-party apps found on device. Install an app first.');
+        }
+
+        if (!process.stdout.isTTY) {
+          const list = apps.map((a) => `  --app ${a.id}${a.name ? ` (${a.name})` : ''}`).join('\n');
+          throw new Error(`--app is required. Available apps:\n${list}`);
+        }
+
+        const selectedApp = await select({
+          message: 'Select an app',
+          choices: apps.map((a) => ({
+            name: a.name ? `${a.name} (${a.id})` : a.id,
+            value: a.id,
+          })),
+        });
+        opts.app = selectedApp;
+        opts.device = device.id;
+        opts.platform = device.platform;
+      }
       await runLogs(shell, {
         app: opts.app as string,
         device: opts.device as string | undefined,
