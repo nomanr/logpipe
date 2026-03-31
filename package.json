@@ -9,7 +9,7 @@
   },
   "files": [
     "dist",
-    "logpipe-plugin",
+    "logpeek-plugin",
     "README.md",
     "LICENSE"
   ],
@@ -40,11 +40,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nomanr/logpipe.git"
+    "url": "git+https://github.com/nomanr/logpeek.git"
   },
-  "homepage": "https://github.com/nomanr/logpipe",
+  "homepage": "https://github.com/nomanr/logpeek",
   "bugs": {
-    "url": "https://github.com/nomanr/logpipe/issues"
+    "url": "https://github.com/nomanr/logpeek/issues"
   },
   "engines": {
     "node": ">=18"

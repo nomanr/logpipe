@@ -116,10 +116,10 @@ export function createProgram(): Command {
     .description('Register logpeek with AI coding tools')
     .action(() => {
       const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-      const pluginSource = join(packageRoot, 'logpipe-plugin');
+      const pluginSource = join(packageRoot, 'logpeek-plugin');
 
       if (!existsSync(pluginSource)) {
-        console.error(`logpipe-plugin directory not found at ${pluginSource}`);
+        console.error(`logpeek-plugin directory not found at ${pluginSource}`);
         process.exitCode = 1;
         return;
       }
