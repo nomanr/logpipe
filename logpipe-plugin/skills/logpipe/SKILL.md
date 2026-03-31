@@ -32,6 +32,7 @@ npx logpipe --app <bundle-id-or-package-name> [options]
 | `--lines` | `200` | Max lines to output |
 | `--level` | `verbose` | `verbose`, `debug`, `info`, `warn`, `error` |
 | `--last` | `5m` | Time window: `30s`, `1m`, `5m`, `1h` |
+| `--grep` | none | Filter logs containing this text (case-insensitive) |
 
 ### Examples
 
@@ -50,6 +51,12 @@ npx logpipe --app com.example.myapp --device "iPhone 16"
 
 # Get last 1 minute of logs
 npx logpipe --app com.example.myapp --last 1m
+
+# Filter logs containing "network"
+npx logpipe --app com.example.myapp --grep "network"
+
+# Combine: errors mentioning "timeout" in last 2 minutes
+npx logpipe --app com.example.myapp --level error --grep "timeout" --last 2m
 ```
 
 ### Other commands
