@@ -1,19 +1,31 @@
 import type { Shell, LogLevel, LogSource, Framework } from '../types.js';
 import { filterByLevel, filterBySource, trimLines } from './filter.js';
 
-function extractProcessName(bundleId: string): string {
+export async function resolveProcessName(shell: Shell, udid: string, bundleId: string): Promise<string> {
+  try {
+    const { stdout } = await shell.exec(
+      'bash',
+      ['-c', `xcrun simctl listapps ${udid} | plutil -convert json -o - -`],
+      { timeout: 10000 },
+    );
+    const apps = JSON.parse(stdout);
+    const app = apps[bundleId];
+    if (app?.CFBundleExecutable) {
+      return app.CFBundleExecutable;
+    }
+  } catch {}
   const parts = bundleId.split('.');
   return parts[parts.length - 1];
 }
 
 interface LogShowBuildOptions {
-  app: string;
+  processName: string;
+  bundleId: string;
   last: string;
 }
 
 export function buildLogShowArgs(udid: string, opts: LogShowBuildOptions): string[] {
-  const processName = extractProcessName(opts.app);
-  const predicate = `process == "${processName}" OR subsystem == "${opts.app}"`;
+  const predicate = `process == "${opts.processName}" OR subsystem == "${opts.bundleId}"`;
 
   return [
     'simctl', 'spawn', udid,
@@ -59,7 +71,8 @@ export async function collectIosLogs(
   udid: string,
   opts: CollectOptions,
 ): Promise<string[]> {
-  const args = buildLogShowArgs(udid, { app: opts.app, last: opts.last });
+  const processName = await resolveProcessName(shell, udid, opts.app);
+  const args = buildLogShowArgs(udid, { processName, bundleId: opts.app, last: opts.last });
   const { stdout } = await shell.exec('xcrun', args, { timeout: 30000 });
 
   let lines = stripLogShowHeaders(stdout.split('\n'));
