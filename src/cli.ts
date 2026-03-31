@@ -163,5 +163,7 @@ export function createProgram(): Command {
 
 export function run(argv: string[]): void {
   const program = createProgram();
-  program.parseAsync(argv);
+  program.parseAsync(argv).then(() => {
+    process.exit(process.exitCode ?? 0);
+  });
 }
