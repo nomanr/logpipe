@@ -14,6 +14,8 @@ logpeek gives coding agents like Claude Code, Cursor, and Gemini CLI direct acce
   <img src="https://img.shields.io/badge/iOS%20%7C%20Android-e8a23e?style=flat-square&label=platform" alt="platform" />
 </p>
 
+https://github.com/nomanr/logpeek/releases/download/v0.0.1/demo.mp4
+
 ## What you can do
 
 Ask your agent things like:
