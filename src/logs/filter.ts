@@ -80,18 +80,18 @@ export function filterBySource(
 
   if (source === 'framework') {
     if (framework === 'react-native') {
-      return lines.filter((line) => /\[ReactNativeJS\]|ReactNativeJS/.test(line));
+      return lines.filter((line) => /\[ReactNativeJS\]|ReactNativeJS|com\.facebook\.react\.runtime\.JavaScript/.test(line));
     }
     if (framework === 'flutter') {
       return lines.filter((line) => /\bflutter\b/i.test(line));
     }
     return lines.filter((line) =>
-      /\[ReactNativeJS\]|ReactNativeJS|\bflutter\b/i.test(line)
+      /\[ReactNativeJS\]|ReactNativeJS|com\.facebook\.react\.runtime\.JavaScript|\bflutter\b/i.test(line)
     );
   }
 
   return lines.filter((line) =>
-    !/\[ReactNativeJS\]|ReactNativeJS|\bflutter\b/i.test(line)
+    !/\[ReactNativeJS\]|ReactNativeJS|com\.facebook\.react\.runtime\.JavaScript|\bflutter\b/i.test(line)
   );
 }
 

@@ -26,15 +26,15 @@ export function createProgram(): Command {
     .version(pkg.version)
     .option('--verbose', 'enable debug logging')
     .option('--quiet', 'suppress all output except errors')
-    .option('--app <id>', 'bundle ID / package name of the app')
-    .option('--source <type>', 'log source: all, native, framework', 'all')
-    .option('--framework <type>', 'framework: react-native, flutter')
+    .option('-a, --app <id>', 'bundle ID / package name of the app')
+    .option('-s, --source <type>', 'log source: all, native, framework', 'all')
+    .option('-f, --framework <type>', 'framework: react-native, flutter')
     .option('-d, --device <id>', 'device ID or name')
-    .option('--platform <type>', 'platform: android, ios')
-    .option('--lines <n>', 'max lines to output', '200')
-    .option('--level <level>', 'minimum log level: verbose, debug, info, warn, error', 'verbose')
-    .option('--last <duration>', 'time window (e.g., 1m, 5m, 1h)', '5m')
-    .option('--grep <pattern>', 'filter logs containing this text (case-insensitive)');
+    .option('-p, --platform <type>', 'platform: android, ios')
+    .option('-n, --lines <n>', 'max lines to output', '200')
+    .option('-l, --level <level>', 'minimum log level: verbose, debug, info, warn, error', 'verbose')
+    .option('-t, --last <duration>', 'time window (e.g., 1m, 5m, 1h)', '5m')
+    .option('-g, --grep <pattern>', 'filter logs containing this text (case-insensitive)');
 
   program.hook('preAction', (_thisCommand, actionCommand) => {
     const opts = actionCommand.optsWithGlobals();
@@ -81,11 +81,12 @@ export function createProgram(): Command {
         opts.device = device.id;
         opts.platform = device.platform;
       }
+      const source = opts.framework && opts.source === 'all' ? 'framework' : opts.source;
       await runLogs(shell, {
         app: opts.app as string,
         device: opts.device as string | undefined,
         platform: opts.platform as 'android' | 'ios' | undefined,
-        source: opts.source as LogSource,
+        source: source as LogSource,
         framework: opts.framework as Framework | undefined,
         level: opts.level as LogLevel,
         lines: parseInt(opts.lines as string, 10),

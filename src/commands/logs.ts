@@ -2,6 +2,7 @@ import type { Shell, LogOptions } from '../types.js';
 import { DeviceDiscovery } from '../devices/discovery.js';
 import { collectAndroidLogs } from '../logs/android.js';
 import { collectIosLogs } from '../logs/ios.js';
+import { formatLines } from '../logs/format.js';
 import { pickDevice } from './device-picker.js';
 import { isMacOS, hasCommand } from '../platform.js';
 
@@ -67,5 +68,6 @@ export async function runLogs(shell: Shell, opts: LogOptions): Promise<void> {
     return;
   }
 
-  process.stdout.write(lines.join('\n') + '\n');
+  const formatted = formatLines(lines, device.platform);
+  process.stdout.write(formatted.join('\n') + '\n');
 }

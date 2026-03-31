@@ -29,57 +29,69 @@ Simulators/emulators only. No physical device support yet.
 
 | Command | Usage | Description |
 |---------|-------|-------------|
-| `logs` (default) | `npx logpipe --app <id> [options]` | Collect and display device logs |
-| `devices` | `npx logpipe devices` | List booted simulators/emulators |
-| `doctor` | `npx logpipe doctor` | Check prerequisites (node, adb, xcrun) |
-| `init` | `npx logpipe init` | Register as Claude Code plugin |
+| `logs` (default) | `logpipe --app <id> [options]` | Collect and display device logs |
+| `devices` | `logpipe devices` | List booted simulators/emulators |
+| `doctor` | `logpipe doctor` | Check prerequisites (node, adb, xcrun) |
+| `init` | `logpipe init` | Register as Claude Code plugin |
 
 ## Log Collection Flags
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--app <id>` | auto-pick | Bundle ID (iOS) or package name (Android). If omitted, lists installed apps. |
-| `--source <type>` | `all` | `all` (everything), `native` (platform only), `framework` (React Native/Flutter tags) |
-| `--framework <type>` | none | `react-native` or `flutter` -- tells logpipe which tags to filter for `--source framework` |
-| `-d, --device <id>` | auto-detected | Device ID or name |
-| `--platform <type>` | auto-detected | `android` or `ios` |
-| `--lines <n>` | `200` | Max lines to output |
-| `--level <level>` | `verbose` | Minimum log level: `verbose`, `debug`, `info`, `warn`, `error` |
-| `--last <duration>` | `5m` | Time window: `30s`, `1m`, `5m`, `10m`, `1h` |
-| `--grep <pattern>` | none | Filter logs containing this text (case-insensitive) |
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--app <id>` | `-a` | auto-pick | Bundle ID (iOS) or package name (Android). If omitted, lists installed apps. |
+| `--source <type>` | `-s` | `all` | `all` (everything), `native` (platform only), `framework` (React Native/Flutter tags) |
+| `--framework <type>` | `-f` | none | `react-native` or `flutter`. Automatically sets `--source framework`. |
+| `--device <id>` | `-d` | auto-detected | Device ID or name |
+| `--platform <type>` | `-p` | auto-detected | `android` or `ios` |
+| `--lines <n>` | `-n` | `200` | Max lines to output |
+| `--level <level>` | `-l` | `verbose` | Minimum log level: `verbose`, `debug`, `info`, `warn`, `error` |
+| `--last <duration>` | `-t` | `5m` | Time window: `30s`, `1m`, `5m`, `10m`, `1h` |
+| `--grep <pattern>` | `-g` | none | Filter logs containing this text (case-insensitive) |
 
 ## Examples
 
 ```bash
 # Get all logs from the last 5 minutes
-npx logpipe --app com.example.myapp
+logpipe --app com.example.myapp
 
 # Get only error-level logs
-npx logpipe --app com.example.myapp --level error
+logpipe --app com.example.myapp --level error
 
 # Search for specific text in logs
-npx logpipe --app com.example.myapp --grep "network"
+logpipe --app com.example.myapp --grep "network"
 
 # Combine: errors mentioning "timeout" in last 2 minutes
-npx logpipe --app com.example.myapp --level error --grep "timeout" --last 2m
+logpipe --app com.example.myapp --level error --grep "timeout" --last 2m
 
-# Get React Native JS console logs only (Android)
-npx logpipe --app com.example.myapp --source framework --framework react-native
+# Get React Native JS console logs only (-f implies --source framework)
+logpipe --app com.example.myapp -f react-native
 
 # Get Flutter framework logs only
-npx logpipe --app com.example.myapp --source framework --framework flutter
+logpipe --app com.example.myapp -f flutter
 
 # Get logs from specific iOS simulator
-npx logpipe --app com.example.myapp --device "iPhone 16"
+logpipe --app com.example.myapp -d "iPhone 16"
 
 # Get last 30 seconds after reproducing a bug
-npx logpipe --app com.example.myapp --last 30s
+logpipe --app com.example.myapp --last 30s
 
 # Widen the window for intermittent issues
-npx logpipe --app com.example.myapp --last 30m --lines 500
+logpipe --app com.example.myapp --last 30m -n 500
 ```
 
 ## How It Works
+
+### Log Formatting
+
+Logs are automatically formatted for readability. Raw platform logs are cleaned up to a consistent format:
+
+```
+15:47:37 INF [Network] GET /api/cart → 200 OK (142ms)
+15:47:37 WRN [Auth] Session token expired, refreshing...
+15:47:39 ERR [Inventory] Connection timeout after 5000ms
+```
+
+Format: `<time> <level> [<category>] <message>`
 
 ### Android
 
@@ -98,13 +110,15 @@ npx logpipe --app com.example.myapp --last 30m --lines 500
 
 ### React Native JS Logs
 
-- On Android, `console.log` output appears in logcat under the `ReactNativeJS` tag. Use `--source framework --framework react-native` to isolate.
-- On iOS, `console.log` goes to Metro terminal (stderr), not to unified logging. Native RN logs (RCT components, networking) are captured.
+- On Android, `console.log` output appears in logcat under the `ReactNativeJS` tag
+- On iOS, `console.log` appears under `com.facebook.react.runtime.JavaScript` in the new React Native runtime, or `ReactNativeJS` in older versions
+- Use `-f react-native` to isolate framework logs
 
 ### Flutter Logs
 
-- On Android, Flutter logs appear under the `flutter` tag. Use `--source framework --framework flutter` to isolate.
-- On iOS, Flutter logs appear under the app process in unified logging.
+- On Android, Flutter logs appear under the `flutter` tag
+- On iOS, Flutter logs appear under the app process in unified logging
+- Use `-f flutter` to isolate framework logs
 
 ## Source Filtering
 
@@ -112,9 +126,9 @@ npx logpipe --app com.example.myapp --last 30m --lines 500
 |------------|-----------------|
 | `all` (default) | Everything from the app process |
 | `native` | Platform-only logs (excludes framework tags) |
-| `framework` | Framework-specific: `ReactNativeJS` (RN), `flutter` (Flutter) |
+| `framework` | Framework-specific: `ReactNativeJS` / `com.facebook.react.runtime.JavaScript` (RN), `flutter` (Flutter) |
 
-When `--framework` is provided, `--source framework` filters for that specific framework's tags. Without `--framework`, it matches all known framework tags.
+When `--framework` is provided, `--source framework` is set automatically. You don't need to pass both.
 
 ## Debugging Workflow
 
@@ -125,7 +139,7 @@ Have the user or agent trigger the bug on the device.
 ### Step 2: Grab logs
 
 ```bash
-npx logpipe --app <bundle-id> --last 1m
+logpipe --app <bundle-id> --last 1m
 ```
 
 Use `--last 1m` right after reproducing to minimize noise.
@@ -135,8 +149,8 @@ Use `--last 1m` right after reproducing to minimize noise.
 If too many results, filter:
 - `--level error` for crashes and exceptions
 - `--grep "keyword"` for specific errors
-- `--source framework` for framework-level issues
-- `--source native` for platform-level issues
+- `-f react-native` for framework-level issues
+- `-s native` for platform-level issues
 
 ### Step 4: Act on findings
 

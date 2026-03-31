@@ -64,6 +64,16 @@ describe('filterBySource', () => {
     expect(result[0]).toContain('ReactNativeJS');
   });
 
+  it('filters framework lines for react-native new runtime on iOS', () => {
+    const iosLines = [
+      '2026-03-31 15:47:37.100 [info][tid:com.facebook.react.runtime.JavaScript] [Network] GET /api/cart',
+      '2026-03-31 15:47:37.100 Df Expo Go[67415:1551548] [com.apple.UIKit:BackgroundTask] system log',
+    ];
+    const result = filterBySource(iosLines, 'framework', 'ios', 'react-native');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toContain('GET /api/cart');
+  });
+
   it('filters framework lines for flutter', () => {
     const result = filterBySource(lines, 'framework', 'android', 'flutter');
     expect(result).toHaveLength(1);
